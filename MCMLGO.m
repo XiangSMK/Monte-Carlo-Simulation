@@ -47,7 +47,12 @@ end
 % Moving photons and change its cosine to focus the beam
 function [Photon] = ConvergBeam(R,Depth,Photon)
 
-    r = rand()*R;
+    rdn =   abs(randn()/2) ;
+    while rdn >= 1
+       rdn = abs(randn()/2); 
+    end
+    
+    r = R*rand; %(0,R) approximate normal distribution
     x = 2*r * rand()-r; %-r,r
     temp = sqrt(r^2-x^2);
     y = 2*temp * rand()- temp; % -temp,temp
@@ -718,7 +723,11 @@ scale1 = 4 *pi *pi *dr *sin(da/2)*dr *Input.Photon_num;
 %The factor (ir+0.5)*sin(2a) to be added.
 for ir = 1:nr
     for ia = 1:na
-       scale2 = 1.0/((ir-0.9)*sin(2.0*ia*da)*scale1);
+%         if Input.SourceType == 2 
+%             scale2 = 1 / sin(2.0*ia*da)*scale1; %Waiting to be modified
+%         else
+            scale2 = 1.0/((ir-0.9)*sin(2.0*ia*da)*scale1);
+%         end
        Output.Rd_ra(ir,ia) = Output.Rd_ra(ir,ia) *scale2;
        Output.Tt_ra(ir,ia) = Output.Tt_ra(ir,ia) *scale2;
     end
@@ -729,10 +738,16 @@ end
 
 scale1 = 2 *pi *dr^2*Input.Photon_num;
 % area is 2*PI*[(ir+0.5)*dr]*dr.
-%  ir+0.5 is rounding in c++,  'ir' is fine in this function in Matlab. 
 
 for ir = 1:nr
-    scale2 = 1.0/((ir-0.9)*scale1);
+    %-----------Tianxiang 21/07/06 -------
+    %When non-normal incidence, A_rz and E_rz need not to be scaled
+    %
+%     if Input.SourceType == 2 
+%         scale2 = 1/scale1; %Waiting to be modified
+%     else
+        scale2 = 1.0/((ir-0.9)*scale1);
+%     end
     Output.Rd_r(ir) = Output.Rd_r(ir) * scale2;
     Output.Tt_r(ir) = Output.Tt_r(ir) * scale2;
 end
@@ -741,7 +756,11 @@ scale1 = 2 *pi *da *Input.Photon_num;
 % solid angle is 2*PI*sin(a)*da. sin(a) to be added. 
 
 for ia = 1:na
-    scale2 = 1.0/(sin((ia-0.9)*da)*scale1);
+%     if Input.SourceType == 2 
+%         scale2 = 1/scale1; %Waiting to be modified
+%     else
+        scale2 = 1.0/(sin((ia-0.9)*da)*scale1);
+%     end
     Output.Rd_a(ia) = Output.Rd_a(ia) * scale2;
     Output.Tt_a(ia) = Output.Tt_a(ia) * scale2;
 end
@@ -766,9 +785,16 @@ function [Output] = ScaleA(Input,Output)
    % volume is 2*pi*ir*dr*dr*dz.
    for iz = 1:nz
        for ir = 1:nr
-           Output.A_rz(ir,iz) = Output.A_rz(ir,iz) / ((ir-0.9)*scale1);%
+           %-----------Tianxiang 21/07/06 -------
+           %When non-normal incidence, A_rz and E_rz need not to be scaled
+%            if Input.SourceType == 2 
+%                scale2 = scale1; %Waiting to be modified
+%            else
+               scale2 = ((ir-0.9)*scale1);
+%            end
+           Output.A_rz(ir,iz) = Output.A_rz(ir,iz) / scale2;%
            %Tianxiang 21/07/02  Energy distribution scaling
-           Output.E_rz(ir,iz) = Output.E_rz(ir,iz) / ((ir-0.95)*scale1);%
+           Output.E_rz(ir,iz) = Output.E_rz(ir,iz) / scale2;%
        end
    end
    
@@ -850,10 +876,14 @@ end
 function [Photon] = RandomDirect(Photon,Input)
 %Setting light angle with angle as half angle
     angle = Input.BeamAngle;
-    phi1 =  ( 2 * angle * rand - angle);%(-abgle,angle)
+    rdn =   randn()/2 ;
+    while abs(rdn) >= 1
+       rdn =   randn()/2 ; 
+    end
+    phi1 =   angle * rdn ;%(0,angle)
     phi2 = 2 * pi * rand;
     cos_phi1 = cos(phi1);
-    sin_phi1 = sin(phi1); 
+    sin_phi1 = sqrt(1-cos_phi1^2); %Tianxiang 21/07/06 sqrt() is fast than sin()
     cos_phi2 = cos(phi2);
     sin_phi2 = sin(phi2);  
     

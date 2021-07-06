@@ -1,5 +1,18 @@
 %MCML initial file
 
+%% User-modifiable data
+%   SourceType = 1 :infinitely narrow photon beam perpendicularly incident
+%              = 2 :convergent photon beam
+%              = 3 :Divergent photon beam
+SourceType = 1;
+%-----------------SourceType 2 parameter-------------
+BeamR = 0.8;   %Beam radius [cm]
+BeamDepth = 0.2; %beam focal depth [cm]
+
+%------------------SourceType 3 parameter-------------
+BeamAngle = pi/4; % Divergent half angle
+
+
 %% Validation and initialization of input data
 %------------------------Tianxiang 21/07/01 -------------------------------
 %Add 1 extra grid to save out-of-bounds photon
@@ -61,15 +74,15 @@ Input.na = na;% Number of grids considered in alpha coordinate, array ranges fro
 %   SourceType = 1 :infinitely narrow photon beam perpendicularly incident
 %              = 2 :convergent photon beam
 %              = 3 :Divergent photon beam
-Input.SourceType = 2;
+Input.SourceType = SourceType;
 
 %-----------Tianxiang 21/07/04 constant for convergent beam----------------
 % Depth is not true depth,refraction needs to be considered
 % make sure Depth is positive.
-if Input.SourceType ==2
+if Input.SourceType == 2
 %----------------------------Modifiable data-------------------------------  
-    Input.BeamR = 1;   %Beam radius [cm]
-    Input.BeamDepth = 0.3; %beam focal depth [cm]
+    Input.BeamR = BeamR;   %Beam radius [cm]
+    Input.BeamDepth = BeamDepth; %beam focal depth [cm]
  %-------------------------------------------------------------------------   
     
     real_depth = Input.BeamDepth ; % copy of real depth.
@@ -88,7 +101,7 @@ end
 
 %-----------Tianxiang 21/07/05  Divergent beam----------------
 if Input.SourceType ==3 %
-    Input.BeamAngle = pi/4; % Divergent half angle
+    Input.BeamAngle = BeamAngle; % Divergent half angle
 end
     
     
