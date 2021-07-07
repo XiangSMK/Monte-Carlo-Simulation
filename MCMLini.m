@@ -56,6 +56,52 @@ else
 end
 %--------------------------------------------------------------------------
 
+%% Structure used to describe tissue layer
+Layer = struct('n',[],... % refractive index
+               'mua',[],... % absorption coefficient
+               'mus',[],... % scattering coefficient
+               'g',[],... % anisotropy
+               'z0',[],... % z coordinate of upper boundary
+               'z1',[],... % z coordinate of lower boundary
+               'cos_crit0',[],... % cosine of critical angle for upper boundary
+               'cos_crit1',[]... % cosine of critical angle for lower boundary
+               );
+           
+Layer = repmat(Layer,1,nl);
+for ilayer = 1:nl
+    z1 = sum(d(1:ilayer));
+    z0 = z1-d(ilayer);
+    n0 = n(ilayer);
+    n1 = n(ilayer+1); % This is actually the current layer's n. 
+                            % Remember there are (nl+2) elements in n.
+    n2 = n(ilayer+2);
+    if (n1 > n0)
+        cos_crit0 = sqrt(1-(n0^2)/(n1^2));
+    else
+        cos_crit0 = 0;
+    end
+    if (n1 > n2)
+        cos_crit1 = sqrt(1-(n2^2)/(n1^2));
+    else
+        cos_crit1 = 0;
+    end
+    Layer(ilayer).n = n1;
+    Layer(ilayer).mua = mua(ilayer);
+    Layer(ilayer).mus = mus(ilayer);
+    Layer(ilayer).g = g(ilayer);
+    Layer(ilayer).z0 = z0;
+    Layer(ilayer).z1 = z1;
+    Layer(ilayer).cos_crit0 = cos_crit0;
+    Layer(ilayer).cos_crit1 = cos_crit1;
+end       
+% detector layer
+Layer(nl+1).n = n(end) ;
+Layer(nl+1).mua = 0;
+Layer(nl+1).mus = 0;
+Layer(nl+1).g = 1;
+Layer(nl+1).z0 = Layer(nl).z1;
+% Layer(nl+1).z1 = 1e10;
+
 %% Simulation input parameters
 Input.Photon_num = np;% number of photons to be traced.
 Input.Layer_num = nl;% number of layers
@@ -68,7 +114,7 @@ Input.da = 0.5*pi/na;% a grid separation.[cm]
 Input.nz = nz;% Number of grids considered in z coordinate, array ranges from 1 to nz.
 Input.nr = nr;% Number of grids considered in r coordinate, array ranges from 1 to nr.
 Input.na = na;% Number of grids considered in alpha coordinate, array ranges from 1 to na.
-
+Input.rlim = rlim;
 %Tianxiang 21/07/04  Light source type settings
 %
 %   SourceType = 1 :infinitely narrow photon beam perpendicularly incident
@@ -114,51 +160,7 @@ Photon.dead = 0;% 1 if photon is terminated.
 Photon.layer = 0;%index to layer where the photon  packet resides.
 Photon.s = 0;%current step size[cm]
 Photon.sleft = 0;
-%% Structure used to describe tissue layer
-Layer = struct('n',[],... % refractive index
-               'mua',[],... % absorption coefficient
-               'mus',[],... % scattering coefficient
-               'g',[],... % anisotropy
-               'z0',[],... % z coordinate of upper boundary
-               'z1',[],... % z coordinate of lower boundary
-               'cos_crit0',[],... % cosine of critical angle for upper boundary
-               'cos_crit1',[]... % cosine of critical angle for lower boundary
-               );
-           
-Layer = repmat(Layer,1,nl);
-for ilayer = 1:nl
-    z1 = sum(d(1:ilayer));
-    z0 = z1-d(ilayer);
-    n0 = n(ilayer);
-    n1 = n(ilayer+1); % This is actually the current layer's n. 
-                            % Remember there are (nl+2) elements in n.
-    n2 = n(ilayer+2);
-    if (n1 > n0)
-        cos_crit0 = sqrt(1-(n0^2)/(n1^2));
-    else
-        cos_crit0 = 0;
-    end
-    if (n1 > n2)
-        cos_crit1 = sqrt(1-(n2^2)/(n1^2));
-    else
-        cos_crit1 = 0;
-    end
-    Layer(ilayer).n = n1;
-    Layer(ilayer).mua = mua(ilayer);
-    Layer(ilayer).mus = mus(ilayer);
-    Layer(ilayer).g = g(ilayer);
-    Layer(ilayer).z0 = z0;
-    Layer(ilayer).z1 = z1;
-    Layer(ilayer).cos_crit0 = cos_crit0;
-    Layer(ilayer).cos_crit1 = cos_crit1;
-end       
-% detector layer
-Layer(nl+1).n =  Input.LayerDown_n ;
-Layer(nl+1).mua = 0;
-Layer(nl+1).mus = 0;
-Layer(nl+1).g = 1;
-Layer(nl+1).z0 = Layer(nl).z1;
-% Layer(nl+1).z1 = 1e10;
+
 %% Structure used to describe imaging lens
 % *1 magnification for imaging 
 Input.Lens_f = 4; %focal length of a imaging thin lens [cm]
