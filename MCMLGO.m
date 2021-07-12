@@ -52,12 +52,11 @@ function [Photon] = ConvergBeam(R,Depth,Photon)
        rdn = abs(randn()/2); 
     end
     
-    r = R*rand; %(0,R) approximate normal distribution
-    x = 2*r * rand()-r; %-r,r
-    temp = sqrt(r^2-x^2);
-    y = 2*temp * rand()- temp; % -temp,temp
-    
-    
+    r = R*rdn; %(0,R) approximate normal distribution
+    phi = 2*pi*rand;
+    x = r*cos(phi);
+    y = r*sin(phi);
+
     s = sqrt(x^2 + y^2 + Depth^2);
     Photon.x = x;
     Photon.y = y;
@@ -584,14 +583,51 @@ end
 %*************************************************
 %Execute Monte Carlo simulation for one independent run.
 function [Photon,Output] = DoOneRun(Photon,Input,Output,Layer)
-    PhotonNum = Input.Photon_num;
-    while(PhotonNum >=0)
-        PhotonNum = PhotonNum -1;
-        Photon = LaunchPhoton(Photon,Layer,Input);
-        while Photon.dead == 0
-             [Photon,Output]= HopDropSpin(Photon,Input,Output,Layer);
-        end
+
+%-----------------------Timer parameters------------------
+PhotonNum = 0;
+inter1 = floor(Input.Photon_num / 10); %interval for timer
+inter2 = floor(inter1/10); % Number of photons used in timer
+NumFlag = -inter2;
+%--------------------------------------------------------
+
+while PhotonNum < Input.Photon_num
+    
+    %--------------------timer start----------------------------
+    ticflag = mod(PhotonNum,inter1) ==0; 
+    if ticflag
+        NumFlag = PhotonNum;
+        tic
     end
+    %------------------------------------------------------
+    
+    %---------------------launch & move--------------------
+    Photon = LaunchPhoton(Photon,Layer,Input);
+    while Photon.dead == 0 && ...
+            (Photon.x <= 2*Input.rlim && Photon.y <= 2*Input.rlim)
+        [Photon,Output]= HopDropSpin(Photon,Input,Output,Layer);
+    end
+    %--------------------------------------------------------
+    
+    %------------------------Time ends-------------------------------
+    if PhotonNum == NumFlag + inter2  
+        t = toc;
+        try
+            DoneTime = t*(Input.Photon_num - PhotonNum)/inter2;
+            disp(['Collecting Data...',...
+                num2str(PhotonNum/Input.Photon_num *100),'% Done. Simulation will done in ',...
+                num2str(DoneTime),' second(s).']);
+        catch
+            disp(['Collecting Data...',...
+                num2str(PhotonNum/Input.Photon_num *100),'% Done.']);
+        end
+        
+    end
+    %---------------------------------------------------------------
+    
+    PhotonNum = PhotonNum +1;
+end
+    disp('Simulation done.');
 end
 
 %---------------------------------------------------------------------
@@ -726,7 +762,7 @@ for ir = 1:nr
 %         if Input.SourceType == 2 
 %             scale2 = 1 / sin(2.0*ia*da)*scale1; %Waiting to be modified
 %         else
-            scale2 = 1.0/((ir-0.9)*sin(2.0*ia*da)*scale1);
+            scale2 = 1.0/((ir-0.5)*sin(2.0*ia*da)*scale1);
 %         end
        Output.Rd_ra(ir,ia) = Output.Rd_ra(ir,ia) *scale2;
        Output.Tt_ra(ir,ia) = Output.Tt_ra(ir,ia) *scale2;
@@ -746,7 +782,7 @@ for ir = 1:nr
 %     if Input.SourceType == 2 
 %         scale2 = 1/scale1; %Waiting to be modified
 %     else
-        scale2 = 1.0/((ir-0.9)*scale1);
+        scale2 = 1.0/((ir-0.5)*scale1);
 %     end
     Output.Rd_r(ir) = Output.Rd_r(ir) * scale2;
     Output.Tt_r(ir) = Output.Tt_r(ir) * scale2;
@@ -759,7 +795,7 @@ for ia = 1:na
 %     if Input.SourceType == 2 
 %         scale2 = 1/scale1; %Waiting to be modified
 %     else
-        scale2 = 1.0/(sin((ia-0.9)*da)*scale1);
+        scale2 = 1.0/(sin((ia-0.5)*da)*scale1);
 %     end
     Output.Rd_a(ia) = Output.Rd_a(ia) * scale2;
     Output.Tt_a(ia) = Output.Tt_a(ia) * scale2;
@@ -787,11 +823,11 @@ function [Output] = ScaleA(Input,Output)
        for ir = 1:nr
            %-----------Tianxiang 21/07/06 -------
            %When non-normal incidence, A_rz and E_rz need not to be scaled
-%            if Input.SourceType == 2 
-%                scale2 = scale1; %Waiting to be modified
-%            else
-               scale2 = ((ir-0.9)*scale1);
-%            end
+           if Input.SourceType == 2 
+               scale2 = scale1; %Waiting to be modified
+           else
+               scale2 = ((ir-0.5)*scale1);
+           end
            Output.A_rz(ir,iz) = Output.A_rz(ir,iz) / scale2;%
            %Tianxiang 21/07/02  Energy distribution scaling
            Output.E_rz(ir,iz) = Output.E_rz(ir,iz) / scale2;%
