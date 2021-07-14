@@ -10,6 +10,8 @@ function [Photon,Input,Output] = MCMLGO(Photon,Layer,Input,Output)
     
     [Input,Output] = SumScaleResult(Layer,Input,Output);
     
+    disp('Simulation Done.');
+    
 end
 
 %------
@@ -587,7 +589,7 @@ function [Photon,Output] = DoOneRun(Photon,Input,Output,Layer)
 %-----------------------Timer parameters------------------
 PhotonNum = 0;
 inter1 = floor(Input.Photon_num / 10); %interval for timer
-inter2 = floor(inter1/10); % Number of photons used in timer
+inter2 = min(floor(inter1/10),5000); % Number of photons used in timer
 NumFlag = -inter2;
 %--------------------------------------------------------
 
@@ -627,7 +629,7 @@ while PhotonNum < Input.Photon_num
     
     PhotonNum = PhotonNum +1;
 end
-    disp('Simulation done.');
+            disp(['Collecting Data...','100','% Done.']);
 end
 
 %---------------------------------------------------------------------
@@ -904,6 +906,8 @@ function [Input,Output] = SumScaleResult(Layer,Input,Output)
     Output = ScaleA(Input,Output);
     % Tianxiang 21/07/01
     [Input,Output] = DeleteXY(Input,Output);
+    disp('Scaling Data...100% Done.');
+    % 
 end
 %---------------------------Tianxiang 21/07/04-----------------------------
 %-----------------------Functions for creating suorce----------------------
