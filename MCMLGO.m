@@ -267,7 +267,16 @@ dwa = w *mua/(mua+mus);
 Photon.w = w - dwa;
 % assign dwa to the absorption array element.
 Output.A_rz(ir,iz) = Output.A_rz(ir,iz)+ dwa;
-Output.E_rz(ir,iz) = Output.E_rz(ir,iz)+ Photon.w;
+Output.S_rz(ir,iz) = Output.S_rz(ir,iz)+ Photon.w;
+%-----Tianxiang 21/07/20 Proportional correction of energy distribution-----
+if mua == 0 && mus == 0
+    w_E = Photon.w;
+else
+    w_E = Photon.w / (mua+mus);
+end
+
+Output.E_rz(ir,iz) = Output.E_rz(ir,iz)+ w_E;
+%---------------------------------------------------------------------------
 end
 
 

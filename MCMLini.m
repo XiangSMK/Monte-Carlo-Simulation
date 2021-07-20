@@ -4,13 +4,13 @@
 %   SourceType = 1 :infinitely narrow photon beam perpendicularly incident
 %              = 2 :convergent photon beam
 %              = 3 :Divergent photon beam
-SourceType = 1;
+SourceType = 2;
 %-----------------SourceType 2 parameter-------------
-BeamR = 0.8;   %Beam radius [cm]
+BeamR = 0.7;   %Beam radius [cm]
 BeamDepth = 0.2; %beam focal depth [cm]
 
 %------------------SourceType 3 parameter-------------
-BeamAngle = pi/4; % Divergent half angle
+BeamAngle = pi/2.5; % Divergent half angle
 
 
 %% Validation and initialization of input data
@@ -115,11 +115,6 @@ Input.nz = nz;% Number of grids considered in z coordinate, array ranges from 1 
 Input.nr = nr;% Number of grids considered in r coordinate, array ranges from 1 to nr.
 Input.na = na;% Number of grids considered in alpha coordinate, array ranges from 1 to na.
 Input.rlim = rlim;
-%Tianxiang 21/07/04  Light source type settings
-%
-%   SourceType = 1 :infinitely narrow photon beam perpendicularly incident
-%              = 2 :convergent photon beam
-%              = 3 :Divergent photon beam
 Input.SourceType = SourceType;
 
 %-----------Tianxiang 21/07/04 constant for convergent beam----------------
@@ -210,6 +205,7 @@ Output = struct('Rsp',[],...%specular reflectance.
     'Tt_a',zeros(1,na),...%1D angular distribution of transmittance. [1/sr]
     'Tt',[],...%total transmittance.
     'Im',zeros(Input.Detector_xnum,Input.Detector_ynum),...%imaging pattern on detector
+    'S_rz',zeros(nr,nz),... %scattering distribution of tissue.
     'E_rz',zeros(nr,nz)... %energy distribution of tissue.
 );
 
