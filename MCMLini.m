@@ -4,7 +4,7 @@
 %   SourceType = 1 :infinitely narrow photon beam perpendicularly incident
 %              = 2 :convergent photon beam
 %              = 3 :Divergent photon beam
-SourceType = 2;
+SourceType = 1;
 %-----------------SourceType 2 parameter-------------
 BeamR = 0.7;   %Beam radius [cm]
 BeamDepth = 0.2; %beam focal depth [cm]
